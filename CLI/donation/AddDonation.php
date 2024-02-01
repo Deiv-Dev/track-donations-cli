@@ -2,16 +2,16 @@
 
 namespace CLI\donation;
 
-require_once '../../controller/DonationController.php';
-use \controller\DonationController;
+require_once __DIR__ . '/../../controller/DonationController.php';
+require_once __DIR__ . '/../../validation/DonationValidator.php';
+require_once __DIR__ . '/../../database/DatabaseConnection.php';
+require_once __DIR__ . '/../../models/Donation.php';
+require_once __DIR__ . '/../../repository/DonationRepository.php';
 
-require_once '../../validation/DonationValidator.php';
+use repository\DonationRepository;
 use validation\DonationValidator;
-
-require_once '../../database/DatabaseConnection.php';
-require_once '../../models/Donation.php';
+use controller\DonationController;
 use models\Donation;
-
 use database\DatabaseConnection;
 
 class AddDonationCommand
@@ -33,7 +33,9 @@ class AddDonationCommand
 
         $databaseConnection = new DatabaseConnection();
         $donationValidator = new DonationValidator($databaseConnection);
-        $donationController = new DonationController($databaseConnection, $donationValidator);
+
+        $repository = new DonationRepository($databaseConnection);
+        $donationController = new DonationController($databaseConnection, $donationValidator, $repository);
 
         $donation = new Donation();
         $donation->setCharityId($charityId);

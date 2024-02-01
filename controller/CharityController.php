@@ -11,15 +11,23 @@ use validation\CharityValidator;
 require_once __DIR__ . '/../models/Charity.php';
 use models\Charity;
 
+require_once __DIR__ . '/../repository/CharityRepository.php';
+use repository\CharityRepository;
+
 class CharityController
 {
     const ERROR_PREFIX = "Error: ";
     private $pdo;
+    private $repository;
     private $validator;
 
-    public function __construct(DatabaseConnection $databaseConnection, CharityValidator $validator)
-    {
+    public function __construct(
+        DatabaseConnection $databaseConnection,
+        CharityValidator $validator,
+        CharityRepository $repository
+    ) {
         $this->pdo = $databaseConnection->getConnection();
+        $this->repository = $repository;
         $this->validator = $validator;
     }
 
@@ -32,8 +40,7 @@ class CharityController
             $name = $charity->getName();
             $email = $charity->getRepresentativeEmail();
 
-            $stmt = $this->pdo->prepare("INSERT INTO charities (name, representative_email) VALUES (?, ?)");
-            $stmt->execute([$name, $email]);
+            $this->repository->insertCharity($name, $email);
             echo "Charity added successfully: $name, $email\n";
         } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage() . "\n";
@@ -43,63 +50,44 @@ class CharityController
     public function getAllCharities(): array
     {
         try {
-            $stmt = $this->pdo->query("SELECT * FROM charities");
-            return $stmt->fetchAll(\PDO::FETCH_OBJ);
-
+            return $this->repository->getAllCharities();
         } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage();
             return [];
-        } finally {
-            $this->pdo = null;
         }
     }
 
     public function update(Charity $charity): void
     {
         try {
-
             $charityId = $charity->getId();
-
-            $stmtCheckId = $this->pdo->prepare("SELECT COUNT(*) FROM charities WHERE id = ?");
 
             $this->validator->validateInput($charity->getName());
             $this->validator->validateEmailFormat($charity->getRepresentativeEmail());
-            $this->validator->validateCharity($stmtCheckId, $charityId);
-            $stmtCheckId->execute([$charityId]);
-
+            $rowCount = $this->repository->checkCharityId($charityId);
+            $this->validator->validateCharity($rowCount, $charityId);
 
             $name = $charity->getName();
             $email = $charity->getRepresentativeEmail();
 
-            $stmtUpdate = $this->pdo->prepare("UPDATE charities SET name = ?, representative_email = ? WHERE id = ?");
-            $stmtUpdate->execute([$name, $email, $charityId]);
+            $this->repository->updateCharity($charityId, $name, $email);
             echo "Charity with ID $charityId updated successfully.";
         } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage();
-        } finally {
-            $this->pdo = null;
         }
     }
 
     public function delete(int $charityId): void
     {
         try {
+            $rowCount = $this->repository->checkCharityId($charityId);
+            $this->validator->validateCharity($rowCount, $charityId);
 
-            $stmtValidate = $this->pdo->prepare("SELECT id FROM charities WHERE id = ?");
-            $stmtValidate->execute([$charityId]);
-            $this->validator->validateCharity($stmtValidate, $charityId);
-
-            $stmtDonations = $this->pdo->prepare("DELETE FROM donations WHERE charity_id = ?");
-            $stmtDonations->execute([$charityId]);
-
-            $stmtCharity = $this->pdo->prepare("DELETE FROM charities WHERE id = ?");
-            $stmtCharity->execute([$charityId]);
+            $this->repository->deleteCharity($charityId);
 
             echo "Charity with ID $charityId deleted successfully.\n";
         } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage();
-        } finally {
-            $this->pdo = null;
         }
     }
 }

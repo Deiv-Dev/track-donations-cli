@@ -19,10 +19,8 @@ class CharityValidator
         }
     }
 
-    public function validateCharity(\PDOStatement $stmtValidate, int $charityId): void
+    public function validateCharity(int $rowCount, int $charityId): void
     {
-        $rowCount = $stmtValidate->rowCount();
-
         if ($rowCount === 0) {
             throw new \InvalidArgumentException("Charity with ID $charityId not found.");
         }

@@ -2,21 +2,33 @@
 
 namespace controller;
 
+
+require_once __DIR__ . '/../models/Donation.php';
 require_once __DIR__ . '/../validation/DonationValidator.php';
-use validation\DonationValidator;
-use database\DatabaseConnection;
+require_once __DIR__ . '/../repository/DonationRepository.php';
+require_once __DIR__ . '/../database/DatabaseConnection.php';
+
+
+use repository\DonationRepository;
 use models\Donation;
+use database\DatabaseConnection;
+use validation\DonationValidator;
 
 class DonationController
 {
     const ERROR_PREFIX = "Error: ";
 
     private $pdo;
+    private $repository;
     private $validator;
 
-    public function __construct(DatabaseConnection $databaseConnection, DonationValidator $validator)
-    {
+    public function __construct(
+        DatabaseConnection $databaseConnection,
+        DonationValidator $validator,
+        DonationRepository $repository
+    ) {
         $this->pdo = $databaseConnection->getConnection();
+        $this->repository = $repository;
         $this->validator = $validator;
     }
 
@@ -28,16 +40,11 @@ class DonationController
             $this->validator->validateCharityId($donation->getCharityId());
             $this->validator->validateDateTime($donation->getDateTime());
 
-            $stmt = $this->pdo->prepare(
-                "INSERT INTO donations (donor_name, amount, charity_id, date_time) VALUES (?, ?, ?, ?)"
-            );
-            $stmt->execute(
-                [
-                    $donation->getDonorName(),
-                    $donation->getAmount(),
-                    $donation->getCharityId(),
-                    $donation->getDateTime()
-                ]
+            $this->repository->createDonation(
+                $donation->getDonorName(),
+                $donation->getAmount(),
+                $donation->getCharityId(),
+                $donation->getDateTime()
             );
 
             echo "Donation added successfully for Charity ID {$donation->getCharityId()}.\n";

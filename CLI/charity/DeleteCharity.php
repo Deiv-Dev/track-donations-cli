@@ -5,7 +5,9 @@ namespace CLI\charity;
 require_once __DIR__ . '/../../models/Charity.php';
 require_once __DIR__ . '/../../controller/CharityController.php';
 require_once __DIR__ . '/../../validation/CharityValidator.php';
+require_once __DIR__ . '/../../repository/CharityRepository.php';
 
+use repository\CharityRepository;
 use controller\CharityController;
 use database\DatabaseConnection;
 use validation\CharityValidator;
@@ -24,8 +26,8 @@ class DeleteCharity
 
         $databaseConnection = new DatabaseConnection();
         $validator = new CharityValidator();
-
-        $charityController = new CharityController($databaseConnection, $validator);
+        $repository = new CharityRepository($databaseConnection);
+        $charityController = new CharityController($databaseConnection, $validator, $repository);
 
         try {
             $charityController->delete($charityId);
