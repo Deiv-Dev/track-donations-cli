@@ -16,96 +16,46 @@ class DonationController
         try {
             $donorName = $donation->getDonorName();
             if (strlen($donorName) > 40) {
-                throw new \InvalidArgumentException("Donor name must be 40 characters or less");
+                echo self::ERROR_PREFIX . "Donor name must be 40 characters or less";
+                return;
             }
 
             $amount = $donation->getAmount();
             if (!is_numeric($amount) || $amount < 0 || $amount > 1000000) {
-                throw new \InvalidArgumentException("Invalid amount");
+                echo self::ERROR_PREFIX . "Amount cant be negative or over 1,000,000";
+                return;
             }
 
             $charityId = $donation->getCharityId();
             $pdo = DatabaseConnection::getConnection();
+
+            // Check if charity ID exists in the database
+            $stmtCharity = $pdo->prepare("SELECT COUNT(*) FROM charities WHERE id = ?");
+            $stmtCharity->execute([$charityId]);
+            $charityCount = $stmtCharity->fetchColumn();
+
+            if ($charityCount === 0) {
+                echo self::ERROR_PREFIX . "Charity with ID $charityId does not exist";
+                return;
+            }
+
+            $dateTime = $donation->getDateTime();
+
+            $formattedDateTime = \DateTime::createFromFormat('Y-m-d H:i:s', $dateTime);
+
+            if (!$formattedDateTime || $formattedDateTime->format('Y-m-d H:i:s') !== $dateTime) {
+                throw new \InvalidArgumentException("Invalid date format. Expected format: 'Y-m-d H:i:s'");
+            }
+
             $dateTime = $donation->getDateTime();
 
             $stmt = $pdo->prepare(
                 "INSERT INTO donations (donor_name, amount, charity_id, date_time) VALUES (?, ?, ?, ?)"
             );
             $stmt->execute([$donorName, $amount, $charityId, $dateTime]);
+            echo "Donation added successfully for Charity ID $charityId.\n";
         } catch (\PDOException | \InvalidArgumentException $e) {
-            echo self::ERROR_PREFIX . $e->getMessage();
-        } finally {
-            $pdo = null;
-        }
-    }
-
-    public function getAllDonations(): array
-    {
-        try {
-            $pdo = DatabaseConnection::getConnection();
-            $stmt = $pdo->query("SELECT * FROM donations");
-            return $stmt->fetchAll(\PDO::FETCH_OBJ);
-
-        } catch (\PDOException $e) {
-            echo self::ERROR_PREFIX . $e->getMessage();
-            return [];
-        } finally {
-            $pdo = null;
-        }
-    }
-
-    public function read(int $donationId): array
-    {
-        try {
-            $pdo = DatabaseConnection::getConnection();
-            $stmt = $pdo->prepare("SELECT * FROM donations WHERE id = ?");
-            $stmt->execute([$donationId]);
-            return $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        } catch (\PDOException $e) {
-            echo self::ERROR_PREFIX . $e->getMessage();
-            return [];
-        } finally {
-            $pdo = null;
-        }
-    }
-
-    public function update(Donation $donation): void
-    {
-        try {
-            $donorName = $donation->getDonorName();
-            if (strlen($donorName) > 40) {
-                throw new \InvalidArgumentException("Donor name must be 40 characters or less");
-            }
-
-            $amount = $donation->getAmount();
-            if (!is_numeric($amount) || $amount < 0 || $amount > 1000000) {
-                throw new \InvalidArgumentException("Invalid amount");
-            }
-
-            $pdo = DatabaseConnection::getConnection();
-            $charityId = $donation->getCharityId();
-            $dateTime = $donation->getDateTime();
-
-            $stmt = $pdo->prepare(
-                "UPDATE donations SET donor_name = ?, amount = ?, charity_id = ?, date_time = ? WHERE id = ?"
-            );
-            $stmt->execute([$donorName, $amount, $charityId, $dateTime, $donation->getId()]);
-        } catch (\PDOException | \InvalidArgumentException $e) {
-            echo self::ERROR_PREFIX . $e->getMessage();
-        } finally {
-            $pdo = null;
-        }
-    }
-
-    public function delete(int $donationId): void
-    {
-        try {
-            $pdo = DatabaseConnection::getConnection();
-            $stmt = $pdo->prepare("DELETE FROM donations WHERE id = ?");
-            $stmt->execute([$donationId]);
-        } catch (\PDOException | \InvalidArgumentException $e) {
-            echo self::ERROR_PREFIX . $e->getMessage();
+            echo self::ERROR_PREFIX . $e->getMessage() . "\n";
         } finally {
             $pdo = null;
         }

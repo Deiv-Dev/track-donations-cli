@@ -41,5 +41,5 @@ try {
     MigrationRunner::runMigrations($pdo);
     $pdo = null;
 } catch (\PDOException $e) {
-    die('Database connection failed: ' . $e->getMessage());
+    die('Something went wrong: ' . $e->getMessage());
 }

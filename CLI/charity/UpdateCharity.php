@@ -3,7 +3,6 @@
 namespace CLI\charity;
 
 require_once '../../controller/CharityController.php';
-require_once '../../database/DatabaseConnection.php';
 
 class UpdateCharityCommand
 {
