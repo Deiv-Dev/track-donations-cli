@@ -4,7 +4,7 @@ namespace database\migrations;
 
 class CreateCharityTable
 {
-    public static function up(\PDO $pdo): void
+    public function up(\PDO $pdo): void
     {
         $pdo->exec("
             CREATE TABLE IF NOT EXISTS charities (
@@ -15,7 +15,7 @@ class CreateCharityTable
         ");
     }
 
-    public static function down(\PDO $pdo)
+    public function down(\PDO $pdo)
     {
         $pdo->exec("DROP TABLE IF EXISTS charities");
     }

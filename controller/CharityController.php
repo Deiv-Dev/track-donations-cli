@@ -37,8 +37,6 @@ class CharityController
             echo "Charity added successfully: $name, $email\n";
         } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage() . "\n";
-        } finally {
-            $this->pdo = null;
         }
     }
 
@@ -63,11 +61,12 @@ class CharityController
             $charityId = $charity->getId();
 
             $stmtCheckId = $this->pdo->prepare("SELECT COUNT(*) FROM charities WHERE id = ?");
-            $stmtCheckId->execute([$charityId]);
 
             $this->validator->validateInput($charity->getName());
             $this->validator->validateEmailFormat($charity->getRepresentativeEmail());
             $this->validator->validateCharity($stmtCheckId, $charityId);
+            $stmtCheckId->execute([$charityId]);
+
 
             $name = $charity->getName();
             $email = $charity->getRepresentativeEmail();
@@ -88,8 +87,6 @@ class CharityController
 
             $stmtValidate = $this->pdo->prepare("SELECT id FROM charities WHERE id = ?");
             $stmtValidate->execute([$charityId]);
-
-
             $this->validator->validateCharity($stmtValidate, $charityId);
 
             $stmtDonations = $this->pdo->prepare("DELETE FROM donations WHERE charity_id = ?");

@@ -14,9 +14,9 @@ class DeleteCharity
 {
     const ERROR_PREFIX = "Error: ";
 
-    public static function runCommand(array $args): void
+    public function runCommand(array $args): void
     {
-        if (count($args) !== 2) {
+        if (count($args) < 2) {
             die("Usage: php DeleteCharityCommand.php <charityId>\n");
         }
 
@@ -44,8 +44,8 @@ if (php_sapi_name() !== 'cli') {
 }
 
 try {
-    $deleteCharityCommand = new DeleteCharity();
-    DeleteCharity::runCommand($argv);
+    $deleteCharity = new DeleteCharity();
+    $deleteCharity->runCommand($argv);
 } catch (\PDOException $e) {
     die('Database connection failed: ' . $e->getMessage());
 }

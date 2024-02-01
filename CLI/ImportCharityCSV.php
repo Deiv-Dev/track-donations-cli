@@ -2,19 +2,21 @@
 
 namespace CLI\charity;
 
-require_once __DIR__ . '/../../models/Charity.php';
-require_once __DIR__ . '/../../controller/CharityController.php';
-require_once __DIR__ . '/../../validation/CharityValidator.php';
+require_once __DIR__ . '/../models/Charity.php';
+require_once __DIR__ . '/../database/DatabaseConnection.php';
+require_once __DIR__ . '/../controller/CharityController.php';
+require_once __DIR__ . '/../validation/CharityValidator.php';
 
-use controller\CharityController;
+use models\Charity;
 use database\DatabaseConnection;
+use controller\CharityController;
 use validation\CharityValidator;
 
 class ImportCharityCSV
 {
     const ERROR_PREFIX = "Error: ";
 
-    public static function runCommand(array $args): void
+    public function runCommand(array $args): void
     {
         if (count($args) !== 2) {
             die("Usage: php ImportCharitiesCommand.php <csvFilePath>\n");
@@ -24,26 +26,24 @@ class ImportCharityCSV
 
         $databaseConnection = new DatabaseConnection();
         $validator = new CharityValidator();
-
         $charityController = new CharityController($databaseConnection, $validator);
 
         try {
             $charities = self::readCSV($csvFilePath);
 
             foreach ($charities as $charityData) {
-                $charity = new \models\Charity();
+                $charity = new Charity();
                 $charity->setName($charityData['name']);
                 $charity->setRepresentativeEmail($charityData['representative_email']);
 
                 $charityController->create($charity);
-                echo "Charity added successfully: {$charity->getName()}, {$charity->getRepresentativeEmail()}\n";
             }
         } catch (\Exception $e) {
             die(self::ERROR_PREFIX . $e->getMessage() . "\n");
         }
     }
 
-    private static function readCSV(string $csvFilePath): array
+    private function readCSV(string $csvFilePath): array
     {
         $charities = [];
         $header = null;
@@ -69,7 +69,7 @@ if (php_sapi_name() !== 'cli') {
 
 try {
     $importCharitiesCommand = new ImportCharityCSV();
-    ImportCharityCSV::runCommand($argv);
+    $importCharitiesCommand->runCommand($argv);
 } catch (\Exception $e) {
     die('Database connection failed: ' . $e->getMessage());
 }

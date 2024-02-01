@@ -14,10 +14,12 @@ class UpdateCharity
 {
     const ERROR_PREFIX = "Error: ";
 
-    public static function runCommand(array $args): void
+    public function runCommand(array $args): void
     {
         if (count($args) !== 4) {
-            die("Usage: php UpdateCharityCommand.php <charityId> <name> <representativeEmail>\n");
+            throw new \InvalidArgumentException(
+                "Usage: php UpdateCharityCommand.php <charityId> <name> <representativeEmail>\n"
+            );
         }
 
         $charityId = (int) $args[1];
@@ -48,7 +50,7 @@ if (php_sapi_name() !== 'cli') {
 
 try {
     $updateCharityCommand = new UpdateCharity();
-    UpdateCharity::runCommand($argv);
+    $updateCharityCommand->runCommand($argv);
 } catch (\Exception $e) {
     die('Something went wrong: ' . $e->getMessage());
 }

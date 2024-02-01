@@ -18,10 +18,12 @@ class AddDonationCommand
 {
     const ERROR_PREFIX = "Error: ";
 
-    public static function runCommand(array $args): void
+    public function runCommand(array $args): void
     {
         if (count($args) !== 5) {
-            die("Usage: php AddDonationCommand.php <charityId> <amount> <donorName> <dateTime>\n");
+            throw new \InvalidArgumentException(
+                "Usage: php AddDonationCommand.php <charityId> <amount> <donorName> <dateTime>\n"
+            );
         }
 
         $charityId = (int) $args[1];
@@ -53,7 +55,7 @@ if (php_sapi_name() !== 'cli') {
 
 try {
     $addDonationCommand = new AddDonationCommand();
-    AddDonationCommand::runCommand($argv);
+    $addDonationCommand->runCommand($argv);
 } catch (\Exception $e) {
     die('Something went wrong: ' . $e->getMessage());
 }

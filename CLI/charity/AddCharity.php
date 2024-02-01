@@ -12,10 +12,10 @@ use validation\CharityValidator;
 
 class AddCharity
 {
-    public static function runCommand(array $args): void
+    public function runCommand(array $args): void
     {
-        if (count($args) < 3) {
-            die("Usage: php AddCharityCommand.php <name> <representative_email>\n");
+        if (count($args) < 2) {
+            throw new \InvalidArgumentException("Usage: php AddCharityCommand.php <name> <representative_email>");
         }
 
         $name = $args[1];
@@ -39,7 +39,7 @@ if (php_sapi_name() !== 'cli') {
 
 try {
     $addCharityCommand = new AddCharity();
-    AddCharity::runCommand($argv);
+    $addCharityCommand->runCommand($argv);
 } catch (\Exception $e) {
     die('Something went wrong ' . $e->getMessage());
 }

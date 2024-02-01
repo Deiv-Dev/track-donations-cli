@@ -12,7 +12,7 @@ use database\DatabaseConnection;
 
 class MigrationRunner
 {
-    public static function runMigrations(\PDO $pdo): void
+    public function runMigrations(\PDO $pdo): void
     {
         $migrationFiles = [
             'CreateCharityTable',
@@ -35,10 +35,12 @@ class MigrationRunner
 
 try {
     $createDb = new DatabaseConnection();
-    CreateDatabase::createDatabase();
-    $pdo = DatabaseConnection::getConnection();
+    $createDatabase = new CreateDatabase();
+    $createDatabase->createDatabase();
+    $pdo = $createDb->getConnection();
     $mig = new MigrationRunner();
-    MigrationRunner::runMigrations($pdo);
+    $migrationRunner = new MigrationRunner();
+    $migrationRunner->runMigrations($pdo);
     $pdo = null;
 } catch (\PDOException $e) {
     die('Something went wrong: ' . $e->getMessage());
