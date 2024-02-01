@@ -20,7 +20,7 @@ class UpdateCharity
     {
         if (count($args) !== 4) {
             throw new \InvalidArgumentException(
-                "Usage: php UpdateCharityCommand.php <charityId> <name> <representativeEmail>\n"
+                "Usage: php UpdateCharity.php <charityId> <name> <representativeEmail>\n"
             );
         }
 

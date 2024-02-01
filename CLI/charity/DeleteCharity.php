@@ -19,7 +19,7 @@ class DeleteCharity
     public function runCommand(array $args): void
     {
         if (count($args) < 2) {
-            die("Usage: php DeleteCharityCommand.php <charityId>\n");
+            die("Usage: php DeleteCharity.php <charityId>\n");
         }
 
         $charityId = (int) $args[1];

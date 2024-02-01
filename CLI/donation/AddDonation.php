@@ -22,7 +22,7 @@ class AddDonationCommand
     {
         if (count($args) !== 5) {
             throw new \InvalidArgumentException(
-                "Usage: php AddDonationCommand.php <charityId> <amount> <donorName> <dateTime>\n"
+                "Usage: php AddDonation.php <charityId> <amount> <donorName> <dateTime>\n"
             );
         }
 

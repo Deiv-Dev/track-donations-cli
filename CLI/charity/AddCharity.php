@@ -17,7 +17,7 @@ class AddCharity
     public function runCommand(array $args): void
     {
         if (count($args) < 2) {
-            throw new \InvalidArgumentException("Usage: php AddCharityCommand.php <name> <representative_email>");
+            throw new \InvalidArgumentException("Usage: php AddCharity.php <name> <representative_email>");
         }
 
         $name = $args[1];
