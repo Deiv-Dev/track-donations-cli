@@ -45,74 +45,64 @@ class CharityController
     public function getAllCharities(): array
     {
         try {
-            $pdo = DatabaseConnection::getConnection();
-            $stmt = $pdo->query("SELECT * FROM charities");
+            $stmt = $this->pdo->query("SELECT * FROM charities");
             return $stmt->fetchAll(\PDO::FETCH_OBJ);
 
         } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage();
             return [];
         } finally {
-            $pdo = null;
+            $this->pdo = null;
         }
     }
 
     public function update(Charity $charity): void
     {
         try {
-            $id = $charity->getId();
-            $pdo = DatabaseConnection::getConnection();
 
-            $stmtCheckId = $pdo->prepare("SELECT COUNT(*) FROM charities WHERE id = ?");
-            $stmtCheckId->execute([$id]);
+            $charityId = $charity->getId();
 
-            if ($stmtCheckId->fetchColumn() == 0) {
-                echo "Error: Charity with ID $id does not exist in the database.";
-                return;
-            }
+            $stmtCheckId = $this->pdo->prepare("SELECT COUNT(*) FROM charities WHERE id = ?");
+            $stmtCheckId->execute([$charityId]);
+
+            $this->validator->validateInput($charity->getName());
+            $this->validator->validateEmailFormat($charity->getRepresentativeEmail());
+            $this->validator->validateCharity($stmtCheckId, $charityId);
 
             $name = $charity->getName();
             $email = $charity->getRepresentativeEmail();
 
-            if (empty($name) || strlen($name) > 40 || empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                echo "Error: Invalid input. Invalid email or name is longer then 40 characters.";
-                return;
-            }
-
-            $stmtUpdate = $pdo->prepare("UPDATE charities SET name = ?, representative_email = ? WHERE id = ?");
-            $stmtUpdate->execute([$name, $email, $id]);
-            echo "Charity with ID $id updated successfully.";
+            $stmtUpdate = $this->pdo->prepare("UPDATE charities SET name = ?, representative_email = ? WHERE id = ?");
+            $stmtUpdate->execute([$name, $email, $charityId]);
+            echo "Charity with ID $charityId updated successfully.";
         } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage();
         } finally {
-            $pdo = null;
+            $this->pdo = null;
         }
     }
 
     public function delete(int $charityId): void
     {
         try {
-            $pdo = DatabaseConnection::getConnection();
 
-            $stmtValidate = $pdo->prepare("SELECT id FROM charities WHERE id = ?");
+            $stmtValidate = $this->pdo->prepare("SELECT id FROM charities WHERE id = ?");
             $stmtValidate->execute([$charityId]);
 
-            if ($stmtValidate->fetch() === false) {
-                echo self::ERROR_PREFIX . "Charity with ID $charityId not found.\n";
-                return;
-            }
 
-            $stmtDonations = $pdo->prepare("DELETE FROM donations WHERE charity_id = ?");
+            $this->validator->validateCharity($stmtValidate, $charityId);
+
+            $stmtDonations = $this->pdo->prepare("DELETE FROM donations WHERE charity_id = ?");
             $stmtDonations->execute([$charityId]);
 
-            $stmtCharity = $pdo->prepare("DELETE FROM charities WHERE id = ?");
+            $stmtCharity = $this->pdo->prepare("DELETE FROM charities WHERE id = ?");
             $stmtCharity->execute([$charityId]);
 
             echo "Charity with ID $charityId deleted successfully.\n";
         } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage();
         } finally {
-            $pdo = null;
+            $this->pdo = null;
         }
     }
 }

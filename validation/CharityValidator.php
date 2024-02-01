@@ -4,8 +4,6 @@ namespace validation;
 
 class CharityValidator
 {
-    const ERROR_PREFIX = "Error: ";
-
     public function validateInput(string $name): void
     {
         if (empty($name) || strlen($name) > 40) {
@@ -18,6 +16,13 @@ class CharityValidator
     {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new \InvalidArgumentException("Invalid email.\n");
+        }
+    }
+
+    public function validateCharity(\PDOStatement $stmtValidate, int $charityId): void
+    {
+        if ($stmtValidate->fetchColumn() === 0) {
+            throw new \InvalidArgumentException("Charity with ID $charityId not found.\n");
         }
     }
 }

@@ -2,13 +2,20 @@
 
 namespace CLI\charity;
 
-require_once '../../controller/CharityController.php';
+
+require_once __DIR__ . '/../../models/Charity.php';
+require_once __DIR__ . '/../../controller/CharityController.php';
+require_once __DIR__ . '/../../validation/CharityValidator.php';
+
+use controller\CharityController;
+use database\DatabaseConnection;
+use validation\CharityValidator;
 
 class ViewAllCharities
 {
     const ERROR_PREFIX = "Error: ";
 
-    public static function getAllCharities(\controller\CharityController $charityController): array
+    public static function getAllCharities(CharityController $charityController): array
     {
         try {
             return $charityController->getAllCharities();
@@ -24,7 +31,10 @@ if (php_sapi_name() !== 'cli') {
 }
 
 try {
-    $charityController = new \controller\CharityController();
+    $databaseConnection = new DatabaseConnection();
+    $validator = new CharityValidator();
+
+    $charityController = new CharityController($databaseConnection, $validator);
     $result = ViewAllCharities::getAllCharities($charityController);
 
     if (!empty($result)) {

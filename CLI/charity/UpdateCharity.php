@@ -2,7 +2,13 @@
 
 namespace CLI\charity;
 
-require_once '../../controller/CharityController.php';
+require_once __DIR__ . '/../../models/Charity.php';
+require_once __DIR__ . '/../../controller/CharityController.php';
+require_once __DIR__ . '/../../validation/CharityValidator.php';
+
+use controller\CharityController;
+use database\DatabaseConnection;
+use validation\CharityValidator;
 
 class UpdateCharity
 {
@@ -18,7 +24,10 @@ class UpdateCharity
         $name = $args[2];
         $representativeEmail = $args[3];
 
-        $charityController = new \controller\CharityController();
+        $databaseConnection = new DatabaseConnection();
+        $validator = new CharityValidator();
+
+        $charityController = new CharityController($databaseConnection, $validator);
 
         try {
             $charity = new \models\Charity();
