@@ -14,28 +14,26 @@ class CharityController
 
     public function create(Charity $charity): void
     {
-        if (empty($charity->getName()) || empty($charity->getRepresentativeEmail())) {
-            throw new \InvalidArgumentException("Invalid input for update");
-        }
-
         $name = $charity->getName();
-        if (strlen($name) > 40) {
-            throw new \InvalidArgumentException("Error: Charity name cannot be longer than 40 characters.");
-        }
-
         $email = $charity->getRepresentativeEmail();
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException("Error: Invalid email format for representative.");
-        }
 
-        try {
-            $pdo = DatabaseConnection::getConnection();
-            $stmt = $pdo->prepare("INSERT INTO charities (name, representative_email) VALUES (?, ?)");
-            $stmt->execute([$name, $email]);
-        } catch (\PDOException | \InvalidArgumentException $e) {
-            echo self::ERROR_PREFIX . $e->getMessage();
-        } finally {
-            $pdo = null;
+        if (empty($name) || empty($email)) {
+            echo self::ERROR_PREFIX . "Invalid input for update.\n";
+        } elseif (strlen($name) > 40) {
+            echo self::ERROR_PREFIX . "Charity name cannot be longer than 40 characters.\n";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo self::ERROR_PREFIX . "Invalid email format for representative.\n";
+        } else {
+            try {
+                $pdo = DatabaseConnection::getConnection();
+                $stmt = $pdo->prepare("INSERT INTO charities (name, representative_email) VALUES (?, ?)");
+                $stmt->execute([$name, $email]);
+                echo "Charity added successfully: $name, $email\n";
+            } catch (\PDOException $e) {
+                echo self::ERROR_PREFIX . $e->getMessage() . "\n";
+            } finally {
+                $pdo = null;
+            }
         }
     }
 
@@ -54,54 +52,50 @@ class CharityController
         }
     }
 
-    public function read(int $charityId): array
-    {
-        try {
-            $pdo = DatabaseConnection::getConnection();
-            $stmt = $pdo->prepare("SELECT * FROM charities WHERE id = ?");
-            $stmt->execute([$charityId]);
-            return $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        } catch (\PDOException $e) {
-            echo self::ERROR_PREFIX . $e->getMessage();
-            return [];
-        } finally {
-            $pdo = null;
-        }
-    }
-
     public function update(Charity $charity): void
     {
         try {
-            if (empty($charity->getName()) || empty($charity->getRepresentativeEmail()) || $charity->getId() <= 0) {
-                throw new \InvalidArgumentException("Invalid input for update");
+            $id = $charity->getId();
+            $pdo = DatabaseConnection::getConnection();
+
+            $stmtCheckId = $pdo->prepare("SELECT COUNT(*) FROM charities WHERE id = ?");
+            $stmtCheckId->execute([$id]);
+
+            if ($stmtCheckId->fetchColumn() == 0) {
+                echo "Error: Charity with ID $id does not exist in the database.";
+                return;
             }
 
             $name = $charity->getName();
-            if (strlen($name) > 40) {
-                throw new \InvalidArgumentException("Error: Charity name cannot be longer than 40 characters.");
-            }
-
             $email = $charity->getRepresentativeEmail();
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw new \InvalidArgumentException("Error: Invalid email format for representative.");
+
+            if (empty($name) || strlen($name) > 40 || empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                echo "Error: Invalid input. Invalid email or name is longer then 40 characters.";
+                return;
             }
 
-            $pdo = DatabaseConnection::getConnection();
-            $stmt = $pdo->prepare("UPDATE charities SET name = ?, representative_email = ? WHERE id = ?");
-            $stmt->execute([$charity->getName(), $charity->getRepresentativeEmail(), $charity->getId()]);
-        } catch (\PDOException | \InvalidArgumentException $e) {
+            $stmtUpdate = $pdo->prepare("UPDATE charities SET name = ?, representative_email = ? WHERE id = ?");
+            $stmtUpdate->execute([$name, $email, $id]);
+            echo "Charity with ID $id updated successfully.";
+        } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage();
         } finally {
             $pdo = null;
         }
     }
-
 
     public function delete(int $charityId): void
     {
         try {
             $pdo = DatabaseConnection::getConnection();
+
+            $stmtValidate = $pdo->prepare("SELECT id FROM charities WHERE id = ?");
+            $stmtValidate->execute([$charityId]);
+
+            if ($stmtValidate->fetch() === false) {
+                echo self::ERROR_PREFIX . "Charity with ID $charityId not found.\n";
+                return;
+            }
 
             $stmtDonations = $pdo->prepare("DELETE FROM donations WHERE charity_id = ?");
             $stmtDonations->execute([$charityId]);
@@ -109,6 +103,7 @@ class CharityController
             $stmtCharity = $pdo->prepare("DELETE FROM charities WHERE id = ?");
             $stmtCharity->execute([$charityId]);
 
+            echo "Charity with ID $charityId deleted successfully.\n";
         } catch (\PDOException $e) {
             echo self::ERROR_PREFIX . $e->getMessage();
         } finally {

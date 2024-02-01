@@ -2,13 +2,13 @@
 
 namespace database\migrations;
 
-class DatabaseCreator
+class CreateDatabase
 {
     public static function createDatabase(): void
     {
         global $rootDsn, $rootUsername, $rootPassword, $dbName;
 
-        require_once '../../config.php';
+        require_once __DIR__ . '/../../config.php';
 
         try {
             $pdoWithoutDB = new \PDO($rootDsn, $rootUsername, $rootPassword);

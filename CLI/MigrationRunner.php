@@ -1,11 +1,14 @@
 <?php
 
-namespace database\migrations;
+namespace CLI;
 
-require_once './CreateDatabase.php';
-require_once './CreateCharityTable.php';
-require_once './CreateDonationTable.php';
-require_once '../DatabaseConnection.php';
+require_once __DIR__ . '/../database/migrations/CreateDatabase.php';
+require_once __DIR__ . '/../database/migrations/CreateCharityTable.php';
+require_once __DIR__ . '/../database/migrations/CreateDonationTable.php';
+require_once __DIR__ . '/../database/DatabaseConnection.php';
+
+use database\migrations\CreateDatabase;
+use database\DatabaseConnection;
 
 class MigrationRunner
 {
@@ -31,9 +34,9 @@ class MigrationRunner
 }
 
 try {
-    $createDb = new DatabaseCreator();
-    DatabaseCreator::createDatabase();
-    $pdo = \Database\DatabaseConnection::getConnection();
+    $createDb = new DatabaseConnection();
+    CreateDatabase::createDatabase();
+    $pdo = DatabaseConnection::getConnection();
     $mig = new MigrationRunner();
     MigrationRunner::runMigrations($pdo);
     $pdo = null;
