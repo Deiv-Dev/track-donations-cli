@@ -31,7 +31,7 @@ php .\MigrationRunner.php
 
 ### 4. Commands to interact with database
 
-Add charities using csv file. Add files path to <csvFilePath>
+Add charities using csv file. Add files path to
 
 ```bash
 php ImportCharities.php <csvFilePath>
@@ -51,6 +51,12 @@ Delete charity
  php DeleteCharity.php <charityId>
 ```
 
+Update charity
+
+```bash
+ php UpdateCharity.php <charityId> <name> <representativeEmail>
+```
+
 View charities
 
 ```bash
@@ -58,6 +64,7 @@ View charities
 ```
 
 Navigate to .\CLI\donation\ to interact with donations database
+
 Add donation
 
 ```bash
