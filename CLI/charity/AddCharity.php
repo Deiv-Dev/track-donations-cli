@@ -2,10 +2,15 @@
 
 namespace CLI\charity;
 
-require_once '../../models/Charity.php';
-require_once '../../controller/CharityController.php';
+require_once __DIR__ . '/../../models/Charity.php';
+require_once __DIR__ . '/../../controller/CharityController.php';
+require_once __DIR__ . '/../../validation/CharityValidator.php';
 
-class AddCharityCommand
+use controller\CharityController;
+use database\DatabaseConnection;
+use validation\CharityValidator;
+
+class AddCharity
 {
     public static function runCommand(array $args): void
     {
@@ -16,7 +21,10 @@ class AddCharityCommand
         $name = $args[1];
         $representativeEmail = $args[2];
 
-        $charityController = new \controller\CharityController();
+        $databaseConnection = new DatabaseConnection();
+        $validator = new CharityValidator();
+
+        $charityController = new CharityController($databaseConnection, $validator);
 
         $charity = new \models\Charity();
         $charity->setName($name);
@@ -30,8 +38,8 @@ if (php_sapi_name() !== 'cli') {
 }
 
 try {
-    $addCharityCommand = new AddCharityCommand();
-    AddCharityCommand::runCommand($argv);
+    $addCharityCommand = new AddCharity();
+    AddCharity::runCommand($argv);
 } catch (\Exception $e) {
     die('Something went wrong ' . $e->getMessage());
 }

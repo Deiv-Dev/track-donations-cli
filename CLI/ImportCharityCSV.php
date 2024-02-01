@@ -3,6 +3,8 @@
 namespace CLI\charity;
 
 require_once __DIR__ . '/../controller/CharityController.php';
+use controller\CharityController;
+
 require_once __DIR__ . '/../models/Charity.php';
 
 class ImportCharityCSV
@@ -17,7 +19,7 @@ class ImportCharityCSV
 
         $csvFilePath = $args[1];
 
-        $charityController = new \controller\CharityController();
+        $charityController = new CharityController();
 
         try {
             $charities = self::readCSV($csvFilePath);

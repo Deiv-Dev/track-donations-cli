@@ -5,35 +5,40 @@ namespace controller;
 require_once __DIR__ . '/../database/DatabaseConnection.php';
 use database\DatabaseConnection;
 
+require_once __DIR__ . '/../validation/CharityValidator.php';
+use validation\CharityValidator;
+
 require_once __DIR__ . '/../models/Charity.php';
 use models\Charity;
 
 class CharityController
 {
     const ERROR_PREFIX = "Error: ";
+    private $pdo;
+    private $validator;
+
+    public function __construct(DatabaseConnection $databaseConnection, CharityValidator $validator)
+    {
+        $this->pdo = $databaseConnection->getConnection();
+        $this->validator = $validator;
+    }
 
     public function create(Charity $charity): void
     {
-        $name = $charity->getName();
-        $email = $charity->getRepresentativeEmail();
+        try {
+            $this->validator->validateInput($charity->getName());
+            $this->validator->validateEmailFormat($charity->getRepresentativeEmail());
 
-        if (empty($name) || empty($email)) {
-            echo self::ERROR_PREFIX . "Invalid input for update.\n";
-        } elseif (strlen($name) > 40) {
-            echo self::ERROR_PREFIX . "Charity name cannot be longer than 40 characters.\n";
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo self::ERROR_PREFIX . "Invalid email format for representative.\n";
-        } else {
-            try {
-                $pdo = DatabaseConnection::getConnection();
-                $stmt = $pdo->prepare("INSERT INTO charities (name, representative_email) VALUES (?, ?)");
-                $stmt->execute([$name, $email]);
-                echo "Charity added successfully: $name, $email\n";
-            } catch (\PDOException $e) {
-                echo self::ERROR_PREFIX . $e->getMessage() . "\n";
-            } finally {
-                $pdo = null;
-            }
+            $name = $charity->getName();
+            $email = $charity->getRepresentativeEmail();
+
+            $stmt = $this->pdo->prepare("INSERT INTO charities (name, representative_email) VALUES (?, ?)");
+            $stmt->execute([$name, $email]);
+            echo "Charity added successfully: $name, $email\n";
+        } catch (\PDOException $e) {
+            echo self::ERROR_PREFIX . $e->getMessage() . "\n";
+        } finally {
+            $this->pdo = null;
         }
     }
 

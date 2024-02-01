@@ -3,8 +3,16 @@
 namespace CLI\donation;
 
 require_once '../../controller/DonationController.php';
+use \controller\DonationController;
+
+require_once '../../validation/DonationValidator.php';
+use validation\DonationValidator;
+
 require_once '../../database/DatabaseConnection.php';
 require_once '../../models/Donation.php';
+use models\Donation;
+
+use database\DatabaseConnection;
 
 class AddDonationCommand
 {
@@ -21,8 +29,11 @@ class AddDonationCommand
         $donorName = $args[3];
         $dateTime = $args[4];
 
-        $donationController = new \controller\DonationController();
-        $donation = new \models\Donation();
+        $databaseConnection = new DatabaseConnection();
+        $donationValidator = new DonationValidator($databaseConnection);
+        $donationController = new DonationController($databaseConnection, $donationValidator);
+
+        $donation = new Donation();
         $donation->setCharityId($charityId);
         $donation->setAmount($amount);
         $donation->setDonorName($donorName);
@@ -36,7 +47,6 @@ class AddDonationCommand
     }
 }
 
-// CLI script check
 if (php_sapi_name() !== 'cli') {
     die("This script can only be run from the command line.");
 }

@@ -4,7 +4,7 @@ namespace CLI\charity;
 
 require_once '../../controller/CharityController.php';
 
-class DeleteCharityCommand
+class DeleteCharity
 {
     const ERROR_PREFIX = "Error: ";
 
@@ -35,8 +35,8 @@ if (php_sapi_name() !== 'cli') {
 }
 
 try {
-    $deleteCharityCommand = new DeleteCharityCommand();
-    DeleteCharityCommand::runCommand($argv);
+    $deleteCharityCommand = new DeleteCharity();
+    DeleteCharity::runCommand($argv);
 } catch (\PDOException $e) {
     die('Database connection failed: ' . $e->getMessage());
 }

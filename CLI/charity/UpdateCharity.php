@@ -4,7 +4,7 @@ namespace CLI\charity;
 
 require_once '../../controller/CharityController.php';
 
-class UpdateCharityCommand
+class UpdateCharity
 {
     const ERROR_PREFIX = "Error: ";
 
@@ -38,8 +38,8 @@ if (php_sapi_name() !== 'cli') {
 }
 
 try {
-    $updateCharityCommand = new UpdateCharityCommand();
-    UpdateCharityCommand::runCommand($argv);
+    $updateCharityCommand = new UpdateCharity();
+    UpdateCharity::runCommand($argv);
 } catch (\Exception $e) {
     die('Something went wrong: ' . $e->getMessage());
 }
