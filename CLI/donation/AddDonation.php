@@ -16,7 +16,17 @@ use database\DatabaseConnection;
 
 class AddDonationCommand
 {
-    const ERROR_PREFIX = "Error: ";
+    const ERROR_PREFIX = "Error:";
+    private $donationController;
+    private $donation;
+
+    public function __construct(
+        DonationController $donationController,
+        Donation $donation,
+    ) {
+        $this->donationController = $donationController;
+        $this->donation = $donation;
+    }
 
     public function runCommand(array $args): void
     {
@@ -31,20 +41,13 @@ class AddDonationCommand
         $donorName = $args[3];
         $dateTime = $args[4];
 
-        $databaseConnection = new DatabaseConnection();
-        $donationValidator = new DonationValidator($databaseConnection);
-
-        $repository = new DonationRepository($databaseConnection);
-        $donationController = new DonationController($databaseConnection, $donationValidator, $repository);
-
-        $donation = new Donation();
-        $donation->setCharityId($charityId);
-        $donation->setAmount($amount);
-        $donation->setDonorName($donorName);
-        $donation->setDateTime($dateTime);
+        $this->donation->setCharityId($charityId);
+        $this->donation->setAmount($amount);
+        $this->donation->setDonorName($donorName);
+        $this->donation->setDateTime($dateTime);
 
         try {
-            $donationController->create($donation);
+            $this->donationController->create($this->donation);
         } catch (\Exception $e) {
             echo self::ERROR_PREFIX . $e->getMessage() . "\n";
         }
@@ -56,7 +59,12 @@ if (php_sapi_name() !== 'cli') {
 }
 
 try {
-    $addDonationCommand = new AddDonationCommand();
+    $databaseConnection = new DatabaseConnection();
+    $donationValidator = new DonationValidator($databaseConnection);
+    $repository = new DonationRepository($databaseConnection);
+    $donationController = new DonationController($databaseConnection, $donationValidator, $repository);
+    $donation = new Donation();
+    $addDonationCommand = new AddDonationCommand($donationController, $donation);
     $addDonationCommand->runCommand($argv);
 } catch (\Exception $e) {
     die('Something went wrong: ' . $e->getMessage());

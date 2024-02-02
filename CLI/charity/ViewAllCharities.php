@@ -7,20 +7,26 @@ require_once __DIR__ . '/../../models/Charity.php';
 require_once __DIR__ . '/../../controller/CharityController.php';
 require_once __DIR__ . '/../../validation/CharityValidator.php';
 require_once __DIR__ . '/../../repository/CharityRepository.php';
-use repository\CharityRepository;
 
+use repository\CharityRepository;
 use controller\CharityController;
 use database\DatabaseConnection;
 use validation\CharityValidator;
 
 class ViewAllCharities
 {
-    const ERROR_PREFIX = "Error: ";
+    const ERROR_PREFIX = "Error:";
+    private $charityController;
 
-    public static function getAllCharities(CharityController $charityController): array
+    public function __construct(CharityController $charityController)
+    {
+        $this->charityController = $charityController;
+    }
+
+    public function getAllCharities(): array
     {
         try {
-            return $charityController->getAllCharities();
+            return $this->charityController->getAllCharities();
         } catch (\Exception $e) {
             echo self::ERROR_PREFIX . $e->getMessage();
             return [];
@@ -37,7 +43,8 @@ try {
     $validator = new CharityValidator();
     $repository = new CharityRepository($databaseConnection);
     $charityController = new CharityController($databaseConnection, $validator, $repository);
-    $result = ViewAllCharities::getAllCharities($charityController);
+    $viewAllCharities = new ViewAllCharities($charityController);
+    $result = $viewAllCharities->getAllCharities();
 
     if (!empty($result)) {
         print_r($result);

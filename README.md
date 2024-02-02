@@ -7,7 +7,7 @@ CLI application to track charities donations
 
 ### 1. Instal & Run XAMPP
 
-Install xampp if don't have and runt mysql
+Install xampp if don't have and runt MySQL and Apache
 
 ### 2. Configure Database Connection
 

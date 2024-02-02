@@ -7,8 +7,8 @@ require_once __DIR__ . '/../database/DatabaseConnection.php';
 require_once __DIR__ . '/../controller/CharityController.php';
 require_once __DIR__ . '/../validation/CharityValidator.php';
 require_once __DIR__ . '/../repository/CharityRepository.php';
-use repository\CharityRepository;
 
+use repository\CharityRepository;
 use models\Charity;
 use database\DatabaseConnection;
 use controller\CharityController;
@@ -16,7 +16,13 @@ use validation\CharityValidator;
 
 class ImportCharityCSV
 {
-    const ERROR_PREFIX = "Error: ";
+    const ERROR_PREFIX = "Error:";
+    private $charityController;
+
+    public function __construct(CharityController $charityController)
+    {
+        $this->charityController = $charityController;
+    }
 
     public function runCommand(array $args): void
     {
@@ -26,10 +32,9 @@ class ImportCharityCSV
 
         $csvFilePath = $args[1];
 
-        $databaseConnection = new DatabaseConnection();
-        $validator = new CharityValidator();
-        $repository = new CharityRepository($databaseConnection);
-        $charityController = new CharityController($databaseConnection, $validator, $repository);
+        if (!file_exists($csvFilePath)) {
+            die("Error: CSV file not found.\n");
+        }
 
         try {
             $charities = self::readCSV($csvFilePath);
@@ -39,7 +44,7 @@ class ImportCharityCSV
                 $charity->setName($charityData['name']);
                 $charity->setRepresentativeEmail($charityData['representative_email']);
 
-                $charityController->create($charity);
+                $this->charityController->create($charity);
             }
         } catch (\Exception $e) {
             die(self::ERROR_PREFIX . $e->getMessage() . "\n");
@@ -71,7 +76,11 @@ if (php_sapi_name() !== 'cli') {
 }
 
 try {
-    $importCharitiesCommand = new ImportCharityCSV();
+    $databaseConnection = new DatabaseConnection();
+    $validator = new CharityValidator();
+    $repository = new CharityRepository($databaseConnection);
+    $charityController = new CharityController($databaseConnection, $validator, $repository);
+    $importCharitiesCommand = new ImportCharityCSV($charityController);
     $importCharitiesCommand->runCommand($argv);
 } catch (\Exception $e) {
     die('Database connection failed: ' . $e->getMessage());
